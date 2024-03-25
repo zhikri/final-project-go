@@ -163,6 +163,18 @@ func CreatePhoto(c *gin.Context) {
 		return
 	}
 
+	//Validasi title
+	if photo.Title == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Title is required"})
+		return
+	}
+
+	// Validasi url
+	if photo.PhotoURL == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Photo Url is Required"})
+		return
+	}
+
 	photo.UserID = claims.ID
 	database.DB.Create(&photo)
 	c.JSON(http.StatusCreated, &photo)

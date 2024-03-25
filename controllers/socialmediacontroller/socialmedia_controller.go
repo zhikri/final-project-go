@@ -64,6 +64,18 @@ func CreateSocialMedia(c *gin.Context) {
 		return
 	}
 
+	//Validasi nama social media
+	if socmed.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Social media name is required"})
+		return
+	}
+
+	// Validasi url
+	if socmed.SocialMediaURL == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Social Media Url is Required"})
+		return
+	}
+
 	// Mengakses nilai spesifik dalam klaim
 	userID := claims.(*config.JWTClaim).ID
 	socmed.UserID = userID
@@ -118,18 +130,15 @@ func DeleteSocialMedia(c *gin.Context) {
 	// Mencari social media yang akan dihapus dalam database
 	var socmed models.SocialMedia
 	if err := database.DB.First(&socmed, id).Error; err != nil {
-		// Jika social media tidak ditemukan, kirim respons dengan status Not Found (404)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Social media tidak ditemukan"})
 		return
 	}
 
 	// Menghapus social media dari database
 	if err := database.DB.Delete(&socmed).Error; err != nil {
-		// Jika terjadi kesalahan saat menghapus social media dari database, kirim respons dengan status Internal Server Error (500)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus social media"})
 		return
 	}
 
-	// Mengembalikan respons berhasil dengan status OK (200)
 	c.JSON(http.StatusOK, gin.H{"message": "Social media berhasil dihapus"})
 }

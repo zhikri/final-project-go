@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"net/http"
+	"regexp"
 	"time"
 )
 
@@ -18,6 +19,39 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Validasi Username
+	if userInput.Username == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username is required"})
+		return
+	}
+
+	// Validasi Email
+	if userInput.Email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
+		return
+	}
+	if !isEmailValid(userInput.Email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+		return
+	}
+
+	// Validasi Password
+	if userInput.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password is required"})
+		return
+	}
+	if len(userInput.Password) < 6 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 6 characters long"})
+		return
+	}
+
+	// Validasi Age
+	if userInput.Age < 8 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Age must be at least 8"})
+		return
+	}
+
 	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(userInput.Password), bcrypt.DefaultCost)
 	userInput.Password = string(hashPassword)
 	database.DB.Create(&userInput)
@@ -145,4 +179,9 @@ func Delete(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Berhasil menghapus user"})
+}
+
+func isEmailValid(email string) bool {
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return emailRegex.MatchString(email)
 }
